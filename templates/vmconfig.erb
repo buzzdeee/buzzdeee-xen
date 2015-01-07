@@ -1,0 +1,73 @@
+# This VM config is managed via Puppet
+
+name="<%= @vmname %>"
+<% if @vmdescription -%>
+description="<%= @vmdescription %>"
+<%- end -%>
+uuid="<%= @vmuuid %>"
+memory=<%= @vmmemory %>
+<% if @vmmaxmem -%>
+maxmem=<%= @vmmaxmem %>
+<%- end -%>
+vcpus=<%= @vmvcpus %>
+<% if @vmcpus -%>
+cpus="<%= @vmcpus %>"
+<%- end -%>
+<% if @vmon_poweroff -%>
+on_poweroff="<%= @vmon_poweroff %>"
+<%- end -%>
+<% if @vmon_reboot -%>
+on_reboot="<%= @vmon_reboot %>"
+<%- end -%>
+<% if @vmon_crash -%>
+on_crash="<%= @vmon_crash %>"
+<%- end -%>
+<% if @vmlocaltime -%>
+localtime=<%= @vmlocaltime %>
+<%- end -%>
+<% if @vmkeymap -%>
+keymap="<%= @vmkeymap %>"
+<%- end -%>
+
+<% if @builder == 'hvm' -%>
+builder="hvm"
+device_model="/usr/lib/xen/bin/qemu-dm"
+kernel="/usr/lib/xen/boot/hvmloader"
+boot="<%= @vmbootorder %>"
+stdvga=0
+vnc=1
+vncunused=1
+viridian=0
+<% if @vmapic -%>
+apic=<%= @vmapic %>
+<%- end -%>
+<% if @vmacpi -%>
+acpi=<%= @vmacpi %>
+<%- end -%>
+pae=1
+serial="pty"
+<% if @vmusb -%>
+usb=<%= @vmusb %>
+<% if @vmusbdevice -%>
+usbdevice='<%= @vmusbdevice %>'
+<%- end -%>
+<%- end -%>
+<% else -%>
+builder="linux"
+bootloader="/usr/lib/xen/boot/domUloader.py"
+bootargs="--entry=xvda2:/boot/vmlinuz-xen,/boot/initrd-xen"
+extra="xencons=tty "
+nographic=1
+<% end -%>
+
+disk=[
+<% @vmdisks.each do |disk| -%>
+	'<%= disk %>',
+<% end -%>
+	]
+vif=[
+<% @vmvifs.each do |vif| -%>
+'<%= vif %>',
+<% end -%>
+	]
+

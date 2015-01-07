@@ -29,13 +29,41 @@
 #
 # === Authors
 #
-# Author Name <author@domain.com>
+# Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 #
 # === Copyright
 #
-# Copyright 2014 Your name here, unless otherwise noted.
+# Copyright 2014 Sebastian Reitenbach, unless otherwise noted.
 #
-class xen {
+class xen (
+  $override_xendconfig = $xen::params::xendconfig,
+  $override_packages   = $xen::params::packages,
+  $xendconfigfile      = $xen::params::xendconfigfile,
+  $service_ensure      = $xen::params::service_ensure,
+  $service_enable      = $xen::params::service_enable,
+  $xenvms              = undef,
+) inherits xen::params {
+  $xendconfig = deep_merge($xen::params::xendconfig, $override_xendconfig)
+  $packages   = deep_merge($xen::params::packages, $override_packages)
 
+  class { 'xen::install':
+    packages          => $packages,
+    packages_defaults => $xen::params::packages_defaults,
+  }
 
+  class { 'xen::config':
+    xendconfigfile => $xendconfigfile,
+    xendconfig     => $xendconfig,
+  }
+
+  class { 'xen::service':
+    service_ensure => $service_ensure,
+    service_enable => $service_enable,
+  }
+
+  create_resources(xen::vmconfig, $xenvms)
+
+  Class['xen::install'] ->
+  Class['xen::config'] ~>
+  Class['xen::service']
 }
