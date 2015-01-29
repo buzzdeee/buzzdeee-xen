@@ -1,5 +1,8 @@
 # This VM config is managed via Puppet
 
+<%- if @vmostype -%>
+ostype="<%= @vmostype %>"
+<%- end -%>
 name="<%= @vmname %>"
 <% if @vmdescription -%>
 description="<%= @vmdescription %>"
@@ -31,33 +34,63 @@ keymap="<%= @vmkeymap %>"
 
 <% if @builder == 'hvm' -%>
 builder="hvm"
-device_model="/usr/lib/xen/bin/qemu-dm"
+  <%- if @vmdevicemodel -%>
+device_model="<%= @vmdevicemodel %>"
+  <%- end -%>
 kernel="/usr/lib/xen/boot/hvmloader"
 boot="<%= @vmbootorder %>"
-stdvga=0
-vnc=1
-vncunused=1
-viridian=0
-<% if @vmapic -%>
+  <%- if @vmstdvga -%>
+stdvga=<%= @vmstdvga %>
+  <%- end -%>
+  <%- if @vmvnc -%>
+vnc=<%= @vmvnc %>
+  <%- end -%>
+  <%- if @vmvncunused -%>
+vncunused=<%= @vmvncunused %>
+  <%- end -%>
+  <%- if @vmviridian -%>
+viridian=<%= @vmviridian %>
+  <%- end -%>
+  <%- if @vmapic -%>
 apic=<%= @vmapic %>
-<%- end -%>
-<% if @vmacpi -%>
+  <%- end -%>
+  <%- if @vmacpi -%>
 acpi=<%= @vmacpi %>
-<%- end -%>
-pae=1
-serial="pty"
-<% if @vmusb -%>
+  <%- end -%>
+  <%- if @vmpae -%>
+pae=<%= @vmpae %>
+  <%- end -%>
+  <%- if @vmserial -%>
+serial="<%= @vmserial %>"
+  <%- end -%>
+  <%- if @vmusb -%>
 usb=<%= @vmusb %>
-<% if @vmusbdevice -%>
+    <%- if @vmusbdevice -%>
 usbdevice='<%= @vmusbdevice %>'
-<%- end -%>
-<%- end -%>
-<% else -%>
+    <%- end -%>
+  <%- end -%>
+<% end -%>
+<% if @builder == 'linux' -%>
 builder="linux"
-bootloader="/usr/lib/xen/boot/domUloader.py"
-bootargs="--entry=xvda2:/boot/vmlinuz-xen,/boot/initrd-xen"
-extra="xencons=tty "
-nographic=1
+  <%- if @vmbootloader -%>
+bootloader="<%= @vmbootloader %>"
+  <%- end -%>
+  <%- if @vmbootargs -%>
+bootargs="<%= @vmbootargs %>"
+  <%- else -%>
+bootargs=""
+  <%- end -%>
+  <%- if @vmextra -%>
+extra="<%= @vmextra %>"
+  <%- else -%>
+extra=" "
+  <%- end -%>
+  <%- if @vmnographic -%>
+nographic=<%= @vmnographic %>
+  <%- end -%>
+  <%- if @vmvfb -%>
+vfb=['<%= @vmvfb %>']
+  <%- end -%>
 <% end -%>
 
 disk=[

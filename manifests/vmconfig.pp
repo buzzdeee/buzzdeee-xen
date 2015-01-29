@@ -22,6 +22,20 @@ define xen::vmconfig (
   $vmapic = undef,
   $vmacpi = undef,
   $vmbootorder = undef,
+  $vmbootloader = undef,
+  $vmbootargs = undef,
+  $vmextra = undef,
+  $vmnographic = undef,
+  $vmvfb = undef,
+  $vmostype = undef,
+  $vmpae = undef,
+  $vmserial = undef,
+  $vmdevicemodel = undef,
+  $vmviridian = undef,
+  $vmvncunused = undef,
+  $vmvnc = undef,
+  $vmviridian = undef,
+  $vmstdvga = undef,
 ) {
 
   if $builder != 'hvm' and $builder != 'linux' {
