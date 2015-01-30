@@ -142,9 +142,9 @@
 (xend-relocation-hosts-allow '')
 <% else -%>
 <% if @xendconfig['xendrelocationhostsallow'].is_a? Array -%>
-(xend-relocation-hosts-allow '<% @xendconfig['xendrelocationhostsallow'].each do 'host' -%><%= host %><% end -%>')
+(xend-relocation-hosts-allow '<% @xendconfig['xendrelocationhostsallow'].each do |host| -%><%= host.gsub(/\./,'\\\\\\.') %> <% end -%>')
 <% else -%>
-(xend-relocation-hosts-allow '<%= @xendconfig['xendrelocationhostsallow'] %>')
+(xend-relocation-hosts-allow '<%= @xendconfig['xendrelocationhostsallow'].gsub(/\./,'\\\\\\.') %>')
 <% end -%>
 <% end -%>
 <% end -%>
