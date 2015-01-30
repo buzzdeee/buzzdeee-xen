@@ -61,7 +61,9 @@ class xen (
     service_enable => $service_enable,
   }
 
-  create_resources(xen::vmconfig, $xenvms)
+  if $xenvms {
+    create_resources(xen::vmconfig, $xenvms)
+  }
 
   Class['xen::install'] ->
   Class['xen::config'] ~>
