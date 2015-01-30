@@ -36,6 +36,9 @@ define xen::vmconfig (
   $vmvnc = undef,
   $vmviridian = undef,
   $vmstdvga = undef,
+  $vmhpet = undef,
+  $vmusb = undef,
+  $vmusbdevice = undef,
 ) {
 
   if $builder != 'hvm' and $builder != 'linux' {
