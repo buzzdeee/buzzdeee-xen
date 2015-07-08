@@ -15,7 +15,7 @@ class xen::install (
 
   file { '/usr/local/bin/install_vm.sh':
     ensure  => 'present',
-    content => template('install_vm.sh.erb'),
+    content => template('xen/install_vm.sh.erb'),
     owner   => 'root',
     group   => '0',
     mode    => '0755',
