@@ -93,7 +93,7 @@ create_backup() {
 }
 
 provision_vm() {
-	VMDISKSIZE=$(($${VMDISKSIZE} * 1024))
+	VMDISKSIZE=$((${VMDISKSIZE} * 1024))
 	cd ${XENVMDIR} && vm-install --graphics none --vcpus ${VMCPUS} --memory ${VMMEM} \
 			--max-mem ${VMMAXMEM}  --disk "file:${VMDISK},xvda,w,${VMDISKSIZE}" \
 			--nic "bridge=${VMBRIDGE},mac=${VMMAC}" \
