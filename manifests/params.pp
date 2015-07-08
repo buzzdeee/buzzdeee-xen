@@ -24,4 +24,7 @@ class xen::params {
   }
   $service_enable = true
   $service_ensure = 'running'
+
+
+  $xenvmdir = '/etc/xen/vm'
 }

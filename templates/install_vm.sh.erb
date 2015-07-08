@@ -1,0 +1,133 @@
+#!/bin/sh
+
+
+if [ $# == 1 ];then
+	NAME=$1
+else
+	read -p 'Please give the VM name to install: ' NAME
+
+fi
+
+NOW=`date +%Y-%m-%d-%H-%M`
+XENVMDIR="<%= @xenvmdir %>"
+OSSETTINGSURL="<%= @ossettingsurl %>"
+SOURCEREPOURL="<%= @sourcerepourl %>"
+VMSTOREDIR="<%= @vmstoredir %>"
+
+VMMEM=''
+VMMAXMEM=''
+VMCPUS=''
+VMDISK=''
+VMDISKSIZE=''
+VMMAC=''
+VMBRIDGE=''
+
+collect_defaults() {
+	VMCFG=$1
+	if [ ! -f ${VMCFG} ];then
+		echo "VM doesn't seem to exist, generating defaults for DEVEL VM"
+		VMMEM='1024'
+		VMMAXMEM='2048'
+		VMCPUS='2'
+		VMDISK="${VMSTOREDIR}/DEVEL/VM-DEVEL-${NAME}.img"
+		VMDISKSIZE='20'
+		VMMAC=`echo -n '00:16:3e'; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 ":%02x"'`
+		VMBRIDGE='bridge25'
+		if [ -f /vms/DEVEL/VM-DEVEL-${NAME}.img ];then
+			echo "VM doesn't exists, but a VM image with proposed name already exists!"
+			exit 1
+		fi
+	else
+		echo "VM already seems to exists, getting existing default values"
+		VMMEM=`grep memory= ${VMCFG} | cut -d '=' -f 2`
+		VMMAXMEM=`grep maxmem= ${VMCFG} | cut -d '=' -f 2`
+		VMCPUS=`grep vcpus= ${VMCFG} | cut -d '=' -f 2`
+		VMDISK=`grep file: ${VMCFG} | cut -d : -f 2 | cut -d , -f 1`
+		VMDISKSIZE=`ls -lh ${VMDISK} | awk '{print $5}' | cut -d '.' -f 1`
+		VMMAC=`perl -pe 'if (!/mac=/) {s|.*||s;} else { s|.*mac=(.*?),.*|\1|}' ${VMCFG}`
+		VMBRIDGE=`perl -pe 'if (!/bridge=/) {s|.*||s;} else { s|.*bridge=(.*?),.*|\1|}; s///;' ${VMCFG} | tr -d "'"`
+	fi
+}
+
+get_userinput() {
+	read -p "memory for the vm (${VMMEM}):" NEWVMMEM
+	if [ -n "${NEWVMMEM}" ];then
+		VMMEM=${NEWVMMEM}
+	fi
+	read -p "maxmemory for the vm (${VMMAXMEM}):" NEWVMMAXMEM
+	if [ -n "${NEWVMMAXMEM}" ];then
+		VMMAXMEM=${NEWVMMAXMEM}
+	fi
+	read -p "nr CPUs for the vm (${VMCPUS}):" NEWVMCPUS
+	if [ -n "${NEWVMCPUS}" ];then
+		VMCPUS=${NEWVMCPUS}
+	fi
+	read -p "disk for the vm (${VMDISK}):" NEWVMDISK
+	if [ -n "${NEWVMDISK}" ];then
+		VMDISK=${NEWVMDISK}
+	fi
+	read -p "disk size for the vm in GB (${VMDISKSIZE}):" NEWVMDISKSIZE
+	if [ -n "${NEWVMDISKSIZE}" ];then
+		VMDISKSIZE=${NEWVMDISKSIZE}
+	fi
+	read -p "MAC address for the vm (${VMMAC}):" NEWVMMAC
+	if [ -n "${NEWVMMAC}" ];then
+		VMMAC=${NEWVMMAC}
+	fi
+	read -p "bridge to be used by the vm (${VMBRIDGE}):" NEWVMBRIDGE
+	if [ -n "${NEWVMBRIDGE}" ];then
+		VMBRIDGE=${NEWVMBRIDGE}
+	fi
+}
+
+create_backup() {
+	VMCFG=${XENVMDIR}/${NAME}
+	if [ -f ${VMCFG} ];then
+		echo "creating copy of xen vm config file: ${VMCFG}"
+		cp ${VMCFG} ${VMCFG}.${NOW}
+	fi 
+        if [ -f ${VMDISK} ];then
+		echo "creating copy of xen vm config file: ${VMDISK}"
+		mv ${VMDISK} ${VMDISK}.${NOW}
+	fi
+}
+
+provision_vm() {
+	VMDISKSIZE=$(($${VMDISKSIZE} * 1024))
+	cd ${XENVMDIR} && vm-install --graphics none --vcpus ${VMCPUS} --memory ${VMMEM} \
+			--max-mem ${VMMAXMEM}  --disk "file:${VMDISK},xvda,w,${VMDISKSIZE}" \
+			--nic "bridge=${VMBRIDGE},mac=${VMMAC}" \
+			--keymap=de --para-virt --os-type sles11 --name ${NAME} \
+			--os-settings "${OSSETTINGSURL}" \
+			--source "${SOURCEREPOURL}" \
+			--background
+}
+
+summary() {
+	echo "Using the following values:"
+	echo -e "VMMEM:\t\t${VMMEM}"
+	echo -e "VMMAXMEM:\t${VMMAXMEM}"
+	echo -e "VMCPUS:\t\t${VMCPUS}"
+	echo -e "VMDIKS:\t\t${VMDISK}"
+	echo -e "VMDISKSIZE:\t${VMDISKSIZE} GB"
+	echo -e "VMMAC:\t\t${VMMAC}"
+	echo -e "VMBRIDGE:\t$VMBRIDGE"
+	ANS=answer
+	while [ "X${ANS}" != "XY" -a "X${ANS}" != "XN" ];do
+		read -p "Is above information correct (Y/N)? " ANS
+		ANS=`echo ${ANS} | tr '[a-z]' '[A-Z]'`
+		if [ "X${ANS}" == "XY" ];then
+			echo "starting!!!"
+			create_backup
+			provision_vm			
+			sleep 5
+			xm console ${NAME}
+		elif [ "X${ANS}" == "XN" ];then
+			exit 1
+		fi
+	done
+}
+
+collect_defaults ${XENVMDIR}/${NAME}
+get_userinput
+summary

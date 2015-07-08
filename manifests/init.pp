@@ -42,13 +42,23 @@ class xen (
   $service_ensure      = $xen::params::service_ensure,
   $service_enable      = $xen::params::service_enable,
   $xenvms              = undef,
+  $install_provision_script = false,
+  $xenvmdir            = $xen::params::xenvmdir,
+  $ossettingsurl       = undef,
+  $sourcerepourl       = undef,
+  $vmstoredir          = undef,
 ) inherits xen::params {
   $xendconfig = deep_merge($xen::params::xendconfig, $override_xendconfig)
   $packages   = deep_merge($xen::params::packages, $override_packages)
 
   class { 'xen::install':
-    packages          => $packages,
-    packages_defaults => $xen::params::packages_defaults,
+    packages                 => $packages,
+    packages_defaults        => $xen::params::packages_defaults,
+    install_provision_script => $install_provision_script,
+    xenvmdir                 => $xenvmdir,
+    ossettingsurl            => $ossettingsurl,
+    sourcerepourl            => $sourcerepourl,
+    vmstoredir               => $vmstoredir,
   }
 
   class { 'xen::config':
