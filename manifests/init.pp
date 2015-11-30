@@ -44,8 +44,7 @@ class xen (
   $xenvms              = undef,
   $install_provision_script = false,
   $xenvmdir            = $xen::params::xenvmdir,
-  $ossettingsurl       = undef,
-  $sourcerepourl       = undef,
+  $ossettings          = undef,
   $vmstoredir          = undef,
 ) inherits xen::params {
   $xendconfig = deep_merge($xen::params::xendconfig, $override_xendconfig)
@@ -56,8 +55,7 @@ class xen (
     packages_defaults        => $xen::params::packages_defaults,
     install_provision_script => $install_provision_script,
     xenvmdir                 => $xenvmdir,
-    ossettingsurl            => $ossettingsurl,
-    sourcerepourl            => $sourcerepourl,
+    ossettings               => $ossettings,
     vmstoredir               => $vmstoredir,
   }
 

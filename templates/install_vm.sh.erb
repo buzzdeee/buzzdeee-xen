@@ -4,14 +4,49 @@
 if [ $# == 1 ];then
 	NAME=$1
 else
-	read -p 'Please give the VM name to install: ' NAME
+  read -p 'Which release of SLES (<% @ossettings.each do |os, settings| %><%= "#{os} "%><% end %>): ' OSINPUT
+  read -p 'Please give the VM name to install: ' NAME
 
 fi
 
 NOW=`date +%Y-%m-%d-%H-%M`
 XENVMDIR="<%= @xenvmdir %>"
-OSSETTINGSURL="<%= @ossettingsurl %>"
-SOURCEREPOURL="<%= @sourcerepourl %>"
+
+
+<%- i=0 -%>
+<%- @ossettings.each do |os, settings| -%>
+<%= "OSSETTINGSURL[#{i}]=#{settings['ossettingsurl']}" %>
+<%= "SOURCEREPOURL[#{i}]=#{settings['sourcerepourl']}" %>
+<%= "VMOSTYPE[#{i}]=#{settings['vmostype']}" %>
+<%= "OSRELEASE[#{i}]=#{os}" %>
+<%- i += 1 -%>
+<%- end -%>
+
+get_index() {
+
+  for (( index=0; index<${#OSRELEASE[@]}; index++ ));
+  do
+    if [ "${OSRELEASE[$index]}" == "${OSINPUT}" ];then
+      echo $index
+      exit
+    fi
+  done
+
+}
+
+index=`get_index`
+
+case $OSINPUT in
+<%- @ossettings.each do |os, settings| -%>
+<%= "  #{os}) echo \"${OSINPUT} selected\";;" %>
+<%- end %>
+  *)
+		echo "You didn't provide one of the supported operating systems"
+		exit 1;;
+esac
+
+
+
 VMSTOREDIR="<%= @vmstoredir %>"
 
 VMMEM=''
@@ -97,9 +132,9 @@ provision_vm() {
 	cd ${XENVMDIR} && vm-install --graphics none --vcpus ${VMCPUS} --memory ${VMMEM} \
 			--max-mem ${VMMAXMEM}  --disk "file:${VMDISK},xvda,w,${VMDISKSIZE}" \
 			--nic "bridge=${VMBRIDGE},mac=${VMMAC}" \
-			--keymap=de --para-virt --os-type sles11 --name ${NAME} \
-			--os-settings "${OSSETTINGSURL}" \
-			--source "${SOURCEREPOURL}" \
+			--keymap=de --para-virt --os-type ${VMOSTYPE[${index}]} --name ${NAME} \
+			--os-settings "${OSSETTINGSURL[${index}]}" \
+			--source "${SOURCEREPOURL[${index}]}" \
 			--background
 }
 

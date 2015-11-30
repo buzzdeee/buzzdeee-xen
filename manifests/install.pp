@@ -6,8 +6,7 @@ class xen::install (
   $packages_defaults,
   $install_provision_script,
   $xenvmdir,
-  $ossettingsurl,
-  $sourcerepourl,
+  $ossettings,
   $vmstoredir,
 ) {
 
