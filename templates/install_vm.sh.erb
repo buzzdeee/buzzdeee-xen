@@ -5,6 +5,17 @@ if [ $# == 1 ];then
 	NAME=$1
 else
   read -p 'Which release of SLES (<% @ossettings.each do |os, settings| %><%= "#{os} "%><% end %>): ' OSINPUT
+
+  case $OSINPUT in
+  <%- @ossettings.each do |os, settings| -%>
+  <%= "  #{os}) echo \"${OSINPUT} selected\";;" %>
+  <%- end %>
+	    *)
+	      echo "You didn't provide one of the supported operating systems!"
+	      exit 1;;
+  esac
+  
+  
   read -p 'Please give the VM name to install: ' NAME
 
 fi
@@ -36,14 +47,6 @@ get_index() {
 
 index=`get_index`
 
-case $OSINPUT in
-<%- @ossettings.each do |os, settings| -%>
-<%= "  #{os}) echo \"${OSINPUT} selected\";;" %>
-<%- end %>
-  *)
-		echo "You didn't provide one of the supported operating systems"
-		exit 1;;
-esac
 
 
 
