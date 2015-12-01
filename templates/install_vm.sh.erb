@@ -81,7 +81,7 @@ collect_defaults() {
 		VMMAXMEM=`grep maxmem= ${VMCFG} | cut -d '=' -f 2`
 		VMCPUS=`grep vcpus= ${VMCFG} | cut -d '=' -f 2`
 		VMDISK=`grep file: ${VMCFG} | cut -d : -f 2 | cut -d , -f 1`
-		VMDISKSIZE=`ls -lh ${VMDISK} | awk '{print $5}' | cut -d '.' -f 1`
+		VMDISKSIZE=`ls -lh ${VMDISK} | awk '{print $5}' | tr -d "[:alpha:]" | cut -d '.' -f 1`
 		VMMAC=`perl -pe 'if (!/mac=/) {s|.*||s;} else { s|.*mac=(.*?),.*|\1|}' ${VMCFG}`
 		VMBRIDGE=`perl -pe 'if (!/bridge=/) {s|.*||s;} else { s|.*bridge=(.*?),.*|\1|}; s///;' ${VMCFG} | tr -d "'"`
 	fi
