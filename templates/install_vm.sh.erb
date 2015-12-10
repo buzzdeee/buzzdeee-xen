@@ -48,8 +48,6 @@ get_index() {
 index=`get_index`
 
 
-
-
 VMSTOREDIR="<%= @vmstoredir %>"
 
 VMMEM=''
@@ -132,13 +130,23 @@ create_backup() {
 
 provision_vm() {
 	VMDISKSIZE=$((${VMDISKSIZE} * 1024))
-	cd ${XENVMDIR} && vm-install --graphics none --vcpus ${VMCPUS} --memory ${VMMEM} \
+	if [ "${VMOSTYPE[${index}]}" == "pxe" ];then
+		cd ${XENVMDIR} && vm-install --graphics none --vcpus ${VMCPUS} --memory ${VMMEM} \
+			--max-mem ${VMMAXMEM}  --disk "file:${VMDISK},xvda,w,${VMDISKSIZE}" \
+			--pxe-boot \
+			--nic "bridge=${VMBRIDGE},mac=${VMMAC},model=e1000" \
+			--keymap=de --full-virt --os-type ${VMOSTYPE[${index}]} --name ${NAME} \
+			--background
+	else
+		cd ${XENVMDIR} && vm-install --graphics none --vcpus ${VMCPUS} --memory ${VMMEM} \
 			--max-mem ${VMMAXMEM}  --disk "file:${VMDISK},xvda,w,${VMDISKSIZE}" \
 			--nic "bridge=${VMBRIDGE},mac=${VMMAC}" \
 			--keymap=de --para-virt --os-type ${VMOSTYPE[${index}]} --name ${NAME} \
 			--os-settings "${OSSETTINGSURL[${index}]}" \
 			--source "${SOURCEREPOURL[${index}]}" \
 			--background
+	fi
+
 }
 
 summary() {
