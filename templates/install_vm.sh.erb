@@ -143,7 +143,7 @@ verify_dns () {
         	#do a reverse name lookup
         	RLOOKUP=`nslookup ${ILOOKUP} | tail -n2 | grep 'name' | wc -l`
         	if [ $RLOOKUP -eq 1 ];then
-                	echo "${ILOOKUP} exist in reverse DNS [OK]"
+                	echo "${ILOOKUP} exists in reverse DNS [OK]"
         	else
                 	echo "Reverse DNS record for ${ILOOKUP} missing! [FAIL]"
                 	exit 1
@@ -195,11 +195,11 @@ collect_defaults() {
                 fi
 
                 if [ -f ${VMSTROREDIR}/${VMNETWORK}/VM-${VMNETWORK}-${NAME}.img ];then
-                        echo "VM doesn't exists, but a VM image with proposed name already exists! [FAIL]"
+                        echo "VM doesn't exist, but a VM image with proposed name already exists! [FAIL]"
                         exit 1
                 fi
         else
-                echo "VM already seems to exists, getting existing saved VM values"
+                echo "VM already seems to exist, getting existing saved VM values"
                 if [ ${VMMEM} == 'AUTO' ];then
                         VMMEM=`grep memory= ${VMCFG} | cut -d '=' -f 2`
                 fi
