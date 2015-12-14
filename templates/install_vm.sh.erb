@@ -128,7 +128,7 @@ index=`get_index`
 ifindex=`get_ifindex`
 
 if [ "X${ifindex}" == "X" ];then
-	echo "Got wrong domain name in hostname: ${NAME}"
+	echo "You provided wrong domain name in hostname: ${NAME}"
 	usage
 	exit 1
 fi
