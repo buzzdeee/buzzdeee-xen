@@ -38,11 +38,8 @@ usage () {
 }
 
 for i in $*; do
-  #echo $i
   PARAMETER=`echo ${i} | cut -d '=' -f 1`
   VALUE=`echo ${i} | cut -d '=' -f 2`
-  #echo "PARAMETER parsed is: " ${PARAMETER}
-  #echo "VALUE parsed is: " ${VALUE}
 
   case $PARAMETER in
     --operating_system ) OSINPUT=${VALUE} ;;
@@ -75,7 +72,7 @@ VMDISK="${VMSTOREDIR}/${VMNETWORK}/VM-${VMNETWORK}-${NAME}.img"
   <%- end %>
 	AUTO) echo "Autodetecting OS (default OS used)" ;;
 	    *)
-	      echo "You didn't provide one of the supported operating systems!"
+	      echo "You didn't provide one of the supported operating systems! [FAIL]"
 	      usage
 	      exit 1;;
   esac
@@ -128,7 +125,7 @@ index=`get_index`
 ifindex=`get_ifindex`
 
 if [ "X${ifindex}" == "X" ];then
-	echo "You provided wrong domain name in hostname: ${NAME}"
+	echo "You provided wrong domain name in hostname: ${NAME} [FAIL]"
 	usage
 	exit 1
 fi
@@ -198,11 +195,11 @@ collect_defaults() {
                 fi
 
                 if [ -f ${VMSTROREDIR}/${VMNETWORK}/VM-${VMNETWORK}-${NAME}.img ];then
-                        echo "VM doesn't exists, but a VM image with proposed name already exists!"
+                        echo "VM doesn't exists, but a VM image with proposed name already exists! [FAIL]"
                         exit 1
                 fi
         else
-                echo "VM already seems to exists, getting existing default values"
+                echo "VM already seems to exists, getting existing saved VM values"
                 if [ ${VMMEM} == 'AUTO' ];then
                         VMMEM=`grep memory= ${VMCFG} | cut -d '=' -f 2`
                 fi
