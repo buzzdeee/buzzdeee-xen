@@ -133,6 +133,41 @@ if [ "X${ifindex}" == "X" ];then
 	exit 1
 fi
 
+
+verify_dns () {
+	NLOOKUP=`nslookup ${NAME} | grep 'Name:' | cut -d ':' -f 2 | tr -d '\t'`
+
+	if [ ${NAME} == ${NLOOKUP} ];then
+        	echo "${NAME} exists in DNS [OK]"
+        	#find the IP address
+        	ILOOKUP=`nslookup ${NAME} | tail -n2 | grep 'Address:' | cut -d ':' -f 2 | tr -d '\t '`
+        	echo "The IP for ${NAME} is: ${ILOOKUP} [OK]"
+
+        	#do a reverse name lookup
+        	RLOOKUP=`nslookup ${ILOOKUP} | tail -n2 | grep 'name' | wc -l`
+        	if [ $RLOOKUP -eq 1 ];then
+                	echo "${ILOOKUP} exist in reverse DNS [OK]"
+        	else
+                	echo "Reverse DNS record for ${ILOOKUP} missing! [FAIL]"
+                	exit 1
+        	fi
+	else
+        	echo "No DNS record found for ${NAME}. You need to setup DNS records first [FAIL]"
+        	exit 1
+	fi
+}
+
+verify_ping () {
+	PING=`ping -c 3 ${NAME} | grep '3 received' | wc -l`
+
+	if [ $PING -eq 1 ];then
+        	echo "VM machine ${NAME} already exists. You need to destroy it first or provide a new name [FAIL]"
+        	exit 1
+	else
+        	echo "VM ${NAME} is not running or does not exist yet [OK]"
+	fi
+}
+
 collect_defaults() {
         VMCFG=$1
         if [ ! -f ${VMCFG} ];then
@@ -283,6 +318,8 @@ summary() {
 	done
 }
 
+verify_dns
+verify_ping
 collect_defaults ${XENVMDIR}/${NAME}
 if [ ${BATCH} == 'false' ];then
 	get_userinput
