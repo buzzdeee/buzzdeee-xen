@@ -8,6 +8,7 @@ class xen::install (
   $xenvmdir,
   $ossettings,
   $vmstoredir,
+  $netifmappings,
 ) {
 
   create_resources(package, $packages, $packages_defaults)

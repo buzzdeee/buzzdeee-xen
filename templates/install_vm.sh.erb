@@ -1,27 +1,88 @@
 #!/bin/sh
 
+#Read all the passed command line parameters and values and assign to correct shell variables
 
-if [ $# == 1 ];then
-	NAME=$1
-else
-  read -p 'Which release of SLES (<% @ossettings.each do |os, settings| %><%= "#{os} "%><% end %>): ' OSINPUT
+BATCH='false'
+OSINPUT='AUTO'
+NAME='AUTO'
+VMMEM='AUTO'
+VMMAXMEM='AUTO'
+VMCPUS='AUTO'
+VMDISKSIZE='AUTO'
+VMMAC='AUTO'
+VMDISK='AUTO'
+VMSTOREDIR="<%= @vmstoredir %>"
+VMBRIDGE='AUTO'
+NOW=`date +%Y-%m-%d-%H-%M`
+XENVMDIR="<%= @xenvmdir %>"
+
+
+usage () {
+	echo "  $0"
+	echo " "
+	echo "  The install_vm script to install VMs requires as the only required parameter --name=<FQDN>"
+	echo " "
+        echo "  Optional parameters are either read from existing VM or default values are used:"
+        echo "  --operating_system=<supported OS | AUTO> (default is SLES11SP3)"
+	echo "    Supported OSes: <% @ossettings.each do |os, settings| %><%= "#{os} "%><% end %>"
+	echo "  --memory=<value in MB | AUTO> (default is 1024)"
+	echo "  --max_memory=<value in MB | AUTO> (default is 2048)"
+	echo "  --nr_cpus=<value | AUTO> (default is 2)"
+        echo "  --disk_size=<value in GB | AUTO> (default is 20)"
+	echo "  --MAC_address=<xx:xx:xx:xx:xx:xx | AUTO> (default is auto generated mac)"
+	echo "  --batch=<true | false> (default is false)" 
+	echo " "
+	echo "Example usage: ./install_vm --name=test66.dmz5.intern"
+	echo " "
+	exit 1
+}
+
+for i in $*; do
+  #echo $i
+  PARAMETER=`echo ${i} | cut -d '=' -f 1`
+  VALUE=`echo ${i} | cut -d '=' -f 2`
+  #echo "PARAMETER parsed is: " ${PARAMETER}
+  #echo "VALUE parsed is: " ${VALUE}
+
+  case $PARAMETER in
+    --operating_system ) OSINPUT=${VALUE} ;;
+    --name ) NAME=`echo ${VALUE} | tr '[:upper:]' '[:lower:]'`;;
+    --memory ) VMMEM=${VALUE} ;;
+    --max_memory ) VMMAXMEM=${VALUE};;
+    --nr_cpus ) VMCPUS=${VALUE};;
+    --disk_size ) VMDISKSIZE=${VALUE};;
+    --MAC_address ) VMMAC=${VALUE};;
+    --batch ) BATCH='true' ;;
+    * ) usage; break ;;
+  esac
+
+done
+
+if [ ${NAME} == "AUTO" ];then
+	usage
+fi
+
+VMNETWORK=`echo ${NAME} | cut -d '.' -f 2 | tr [:lower:] [:upper:]`
+VMDISK="${VMSTOREDIR}/${VMNETWORK}/VM-${VMNETWORK}-${NAME}.img"
+
+
+#if [ "${BATCH}" == 'false' ];then
+#  read -p 'Which release of SLES (<% @ossettings.each do |os, settings| %><%= "#{os} "%><% end %>): ' OSINPUT
 
   case $OSINPUT in
   <%- @ossettings.each do |os, settings| -%>
   <%= "  #{os}) echo \"${OSINPUT} selected\";;" %>
   <%- end %>
+	AUTO) echo "Autodetecting OS (default OS used)" ;;
 	    *)
 	      echo "You didn't provide one of the supported operating systems!"
+	      usage
 	      exit 1;;
   esac
   
-  
-  read -p 'Please give the VM name to install: ' NAME
+#  read -p 'Please give the VM name to install: ' NAME
 
-fi
-
-NOW=`date +%Y-%m-%d-%H-%M`
-XENVMDIR="<%= @xenvmdir %>"
+#fi
 
 
 <%- i=0 -%>
@@ -30,6 +91,13 @@ XENVMDIR="<%= @xenvmdir %>"
 <%= "SOURCEREPOURL[#{i}]=#{settings['sourcerepourl']}" %>
 <%= "VMOSTYPE[#{i}]=#{settings['vmostype']}" %>
 <%= "OSRELEASE[#{i}]=#{os}" %>
+<%- i += 1 -%>
+<%- end -%>
+
+<%- i=0 -%>
+<%- @netifmappings.each do |net, settings| -%>
+<%= "NETNAME[#{i}]=#{net}" %>
+<%= "NETBRIDGE[#{i}]=#{settings['interface']}" %>
 <%- i += 1 -%>
 <%- end -%>
 
@@ -45,44 +113,86 @@ get_index() {
 
 }
 
+get_ifindex() {
+
+  for (( ifindex=0; ifindex<${#NETNAME[@]}; ifindex++ ));
+  do
+    if [ "${NETNAME[$ifindex]}" == "${VMNETWORK}" ];then
+      echo $ifindex
+      exit
+    fi
+  done
+}
+
 index=`get_index`
+ifindex=`get_ifindex`
 
-
-VMSTOREDIR="<%= @vmstoredir %>"
-
-VMMEM=''
-VMMAXMEM=''
-VMCPUS=''
-VMDISK=''
-VMDISKSIZE=''
-VMMAC=''
-VMBRIDGE=''
+if [ "X${ifindex}" == "X" ];then
+	echo "Got wrong domain name in hostname: ${NAME}"
+	usage
+	exit 1
+fi
 
 collect_defaults() {
-	VMCFG=$1
-	if [ ! -f ${VMCFG} ];then
-		echo "VM doesn't seem to exist, generating defaults for DEVEL VM"
-		VMMEM='1024'
-		VMMAXMEM='2048'
-		VMCPUS='2'
-		VMDISK="${VMSTOREDIR}/DEVEL/VM-DEVEL-${NAME}.img"
-		VMDISKSIZE='20'
-		VMMAC=`echo -n '00:16:3e'; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 ":%02x"'`
-		VMBRIDGE='bridge25'
-		if [ -f /vms/DEVEL/VM-DEVEL-${NAME}.img ];then
-			echo "VM doesn't exists, but a VM image with proposed name already exists!"
-			exit 1
-		fi
-	else
-		echo "VM already seems to exists, getting existing default values"
-		VMMEM=`grep memory= ${VMCFG} | cut -d '=' -f 2`
-		VMMAXMEM=`grep maxmem= ${VMCFG} | cut -d '=' -f 2`
-		VMCPUS=`grep vcpus= ${VMCFG} | cut -d '=' -f 2`
-		VMDISK=`grep file: ${VMCFG} | cut -d : -f 2 | cut -d , -f 1`
-		VMDISKSIZE=`ls -lh ${VMDISK} | awk '{print $5}' | tr -d "[:alpha:]" | cut -d '.' -f 1`
-		VMMAC=`perl -pe 'if (!/mac=/) {s|.*||s;} else { s|.*mac=(.*?),.*|\1|}' ${VMCFG}`
-		VMBRIDGE=`perl -pe 'if (!/bridge=/) {s|.*||s;} else { s|.*bridge=(.*?),.*|\1|}; s///;' ${VMCFG} | tr -d "'"`
-	fi
+        VMCFG=$1
+        if [ ! -f ${VMCFG} ];then
+                echo "VM doesn't seem to exist, generating defaults for VM"
+                if [ ${VMMEM} == 'AUTO' ];then
+                        VMMEM='1024'
+                fi
+                if [ ${VMMAXMEM} == 'AUTO' ];then
+                        VMMAXMEM='2048'
+                fi
+                if [ ${VMCPUS} == 'AUTO' ];then
+                        VMCPUS='2'
+                fi
+                if [ ${VMDISK} == 'AUTO' ];then
+                        VMNETWORK="echo ${NAME} | cut -d '.' -f 2 | tr [:lower:] [:upper:]"
+                        VMDISK="${VMSTROREDIR}/${VMNETWORK}/VM-${VMNETWORK}-${NAME}.img"
+                fi
+
+                if [ ${VMDISKSIZE} == 'AUTO' ];then
+                        VMDISKSIZE='20'
+                fi
+                if [ ${VMMAC} == 'AUTO' ];then
+                        VMMAC=`echo -n '00:16:3e'; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 ":%02x"'`
+                fi
+
+                if [ ${VMBRIDGE} == 'AUTO' ];then
+			VMBRIDGE=${NETBRIDGE[${ifindex}]}
+                fi
+
+                if [ -f ${VMSTROREDIR}/${VMNETWORK}/VM-${VMNETWORK}-${NAME}.img ];then
+                        echo "VM doesn't exists, but a VM image with proposed name already exists!"
+                        exit 1
+                fi
+        else
+                echo "VM already seems to exists, getting existing default values"
+                if [ ${VMMEM} == 'AUTO' ];then
+                        VMMEM=`grep memory= ${VMCFG} | cut -d '=' -f 2`
+                fi
+                if [ ${VMMAXMEM} == 'AUTO' ];then
+                        VMMAXMEM=`grep maxmem= ${VMCFG} | cut -d '=' -f 2`
+                fi
+                if [ ${VMCPUS} == 'AUTO' ];then
+                        VMCPUS=`grep vcpus= ${VMCFG} | cut -d '=' -f 2`
+                fi
+                if [ ${VMDISK} == 'AUTO' ];then
+                        VMDISK=`grep file: ${VMCFG} | cut -d : -f 2 | cut -d , -f 1`
+                fi
+                if [ ${VMDISKSIZE} == 'AUTO' ];then
+                        VMDISKSIZE=`ls -lh ${VMDISK} | awk '{print $5}' | tr -d "[:alpha:]" | cut -d '.' -f 1`
+			if [ -z $VMDISKSIZE ];then
+				VMDISKSIZE='20'
+			fi
+                fi
+                if [ ${VMMAC} == 'AUTO' ];then
+                        VMMAC=`perl -pe 'if (!/mac=/) {s|.*||s;} else { s|.*mac=(.*?),.*|\1|}' ${VMCFG}`
+                fi
+                if [ ${VMBRIDGE} == 'AUTO' ];then
+                        VMBRIDGE=`perl -pe 'if (!/bridge=/) {s|.*||s;} else { s|.*bridge=(.*?),.*|\1|}; s///;' ${VMCFG} | tr -d "'"`
+                fi
+        fi
 }
 
 get_userinput() {
@@ -146,7 +256,6 @@ provision_vm() {
 			--source "${SOURCEREPOURL[${index}]}" \
 			--background
 	fi
-
 }
 
 summary() {
@@ -175,5 +284,17 @@ summary() {
 }
 
 collect_defaults ${XENVMDIR}/${NAME}
-get_userinput
-summary
+if [ ${BATCH} == 'false' ];then
+	get_userinput
+	summary
+fi
+create_backup
+provision_vm
+
+if [ ${BATCH} == 'true' ];then
+	echo "Your VM is getting installed in the background on node `hostname -f`."
+        echo "It will be available at ${NAME} in a couple of minutes."
+else
+	sleep 5
+	xm console ${NAME}
+fi
