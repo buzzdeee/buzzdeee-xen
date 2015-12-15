@@ -305,10 +305,10 @@ summary() {
 		ANS=`echo ${ANS} | tr '[a-z]' '[A-Z]'`
 		if [ "X${ANS}" == "XY" ];then
 			echo "starting!!!"
-			create_backup
-			provision_vm			
-			sleep 5
-			xm console ${NAME}
+			#create_backup
+			#provision_vm			
+			#sleep 5
+			#xm console ${NAME}
 		elif [ "X${ANS}" == "XN" ];then
 			exit 1
 		fi
