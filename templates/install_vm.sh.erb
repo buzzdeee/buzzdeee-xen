@@ -271,6 +271,9 @@ create_backup() {
 }
 
 provision_vm() {
+        #in case user did not delete existing VM from domain management 
+        xm delete ${NAME} 2>/dev/null >/dev/null
+
 	VMDISKSIZE=$((${VMDISKSIZE} * 1024))
 	if [ "${VMOSTYPE[${index}]}" == "pxe" ];then
 		cd ${XENVMDIR} && vm-install --graphics none --vcpus ${VMCPUS} --memory ${VMMEM} \
@@ -288,6 +291,12 @@ provision_vm() {
 			--source "${SOURCEREPOURL[${index}]}" \
 			--background
 	fi
+
+	#check that the output of vm-install is error free otherwise bail out
+        if [ $? -ne 0 ];then
+                exit 1
+        fi
+
 }
 
 summary() {
