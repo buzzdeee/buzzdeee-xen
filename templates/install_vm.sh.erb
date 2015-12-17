@@ -15,7 +15,7 @@ VMSTOREDIR="<%= @vmstoredir %>"
 VMBRIDGE='AUTO'
 NOW=`date +%Y-%m-%d-%H-%M`
 XENVMDIR="<%= @xenvmdir %>"
-
+ILOOKUP=''
 
 usage () {
 	echo "  $0"
@@ -324,6 +324,117 @@ summary() {
 	done
 }
 
+wait_for_install() {
+if [ ${BATCH} == 'true' ];then
+	echo "Your VM is getting installed in the background on node `hostname -f`."
+        echo "It will be available at ${NAME} in a couple of minutes. Please wait..."
+	#implement logic to check if vm-install is still running. For OpenBSD VM which
+	#is fully virtualized vm-install hands over very quickly and only qemu-dm remains
+	VMINSTALL=`ps aux | grep "vm-install.*name ${NAME}" | grep -v grep | wc -l`
+	
+	while [ $VMINSTALL -eq 1 ];do
+        	#echo -n "."
+        	sleep 60
+        	VMINSTALL=`ps aux | grep "vm-install.*name ${NAME}" | grep -v grep | wc -l`
+	done
+	
+	#now we can parse and create yaml output from final VM configuration from /etc/xen/vm/fqdn
+	echo "Your ${NAME} installation finished. VM ${NAME} is rebooting [OK]"
+
+else
+	sleep 5
+	xm console ${NAME}
+fi
+}
+
+generate_yaml () {
+	#cat /etc/xen/vm/${NAME}
+	VMFILE=${XENVMDIR}/${NAME}
+	XVMNAME=`cat ${VMFILE} | grep '^name=' | tr -d '"' | cut -d '=' -f 2`
+	XVMDESCRIPTION=`cat ${VMFILE} | grep '^description=' | tr -d '"' | cut -d '=' -f 2`
+	XVMUUID=`cat ${VMFILE} | grep '^uuid=' | tr -d '"' | cut -d '=' -f 2`
+	XVMMEMORY=`cat ${VMFILE} | grep '^memory=' | tr -d '"' | cut -d '=' -f 2`
+	XVMMAXMEM=`cat ${VMFILE} | grep '^maxmem=' | tr -d '"' | cut -d '=' -f 2`
+	XVMVCPUS=`cat ${VMFILE} | grep '^vcpus=' | tr -d '"' | cut -d '=' -f 2`
+	XVMONPOWEROFF=`cat ${VMFILE} | grep '^on_poweroff=' | tr -d '"' | cut -d '=' -f 2`
+	XVMONREBOOT=`cat ${VMFILE} | grep '^on_reboot=' | tr -d '"' | cut -d '=' -f 2`
+	XVMONCRASH=`cat ${VMFILE} | grep '^on_crash=' | tr -d '"' | cut -d '=' -f 2`
+	XVMLOCALTIME=`cat ${VMFILE} | grep '^localtime=' | tr -d '"' | cut -d '=' -f 2`
+	XVMKEYMAP=`cat ${VMFILE} | grep '^keymap=' | tr -d '"' | cut -d '=' -f 2`
+	XVMBUILDER=`cat ${VMFILE} | grep '^builder=' | tr -d '"' | cut -d '=' -f 2`
+	XVMBOOTLOADER=`cat ${VMFILE} | grep '^bootloader=' | tr -d '"' | cut -d '=' -f 2`
+	XVMBOOTARGS=`cat ${VMFILE} | grep '^bootargs=' | tr -d '"' | cut -d '=' -f 2`
+	XVMEXTRA=`cat ${VMFILE} | grep '^extra=' | tr -d '"' | cut -d '=' -f 2,3,4,5,6`
+	XVMDISK=`cat ${VMFILE} | grep '^disk=' | tr -d '"[]' | cut -d '=' -f 2`
+	XVMIF=`cat ${VMFILE} | grep '^vif=' | tr -d '"[]' | cut -d '=' -f 2,3,4,5,6`
+	XVMNOGRAPHIC=`cat ${VMFILE} | grep '^nographic=' | tr -d '"' | cut -d '=' -f 2`
+
+	#parse additional variables for vmostype=pxe such as OpenBSD
+	if [ "${VMOSTYPE[${index}]}" == "pxe" ];then
+		XVMDEVICEMODEL=`cat ${VMFILE} | grep '^device_model=' | tr -d '"' | cut -d '=' -f 2`
+		XVMKERNEL=`cat ${VMFILE} | grep '^kernel=' | tr -d '"' | cut -d '=' -f 2`
+		XVMBOOT=`cat ${VMFILE} | grep '^boot=' | tr -d '"' | cut -d '=' -f 2`
+		XVMVIRIDIAN=`cat ${VMFILE} | grep '^viridian=' | tr -d '"' | cut -d '=' -f 2`
+		XVMAPIC=`cat ${VMFILE} | grep '^apic=' | tr -d '"' | cut -d '=' -f 2`
+		XVMACPI=`cat ${VMFILE} | grep '^acpi=' | tr -d '"' | cut -d '=' -f 2`
+		XVMPAE=`cat ${VMFILE} | grep '^pae=' | tr -d '"' | cut -d '=' -f 2`
+		XVMSERIAL=`cat ${VMFILE} | grep '^serial=' | tr -d '"' | cut -d '=' -f 2`
+	fi
+
+	#prepare common outputs for all vmostypes
+	echo " "
+	echo "Puppet: prepared yaml to copy/paste to intcluster.yaml in hieradata"
+	echo "==================================================================="
+	echo "  ${XVMNAME}:"
+	echo "    vmname: '${XVMNAME}'"
+	echo "    vmdescription: '${XVMDESCRIPTION}'"
+	echo "    vmuuid: '${XVMUUID}'"
+	echo "    vmmemory: '${XVMMEMORY}'"
+	echo "    vmmaxmem: '${XVMMAXMEM}'"
+	echo "    vmvcpus: '${XVMVCPUS}'"
+	echo "    vmcpus: '^0,^1,^2,^3'"
+	echo "    vmon_poweroff: '${XVMONPOWEROFF}'"
+	echo "    vmon_reboot: '${XVMONREBOOT}'"
+	echo "    vmon_crash: '${XVMONCRASH}'"
+	echo "    vmlocaltime: '${XVMLOCALTIME}'"
+	echo "    vmkeymap: '${XVMKEYMAP}'"
+	echo "    builder: '${XVMBUILDER}'"
+	#prepare different outputs depending on the vmostype (linux sless != pxe)
+	if [ "${VMOSTYPE[${index}]}" != "pxe" ];then
+		echo "    vmbootloader: '${XVMBOOTLOADER}'"
+		echo "    vmbootargs: '${XVMBOOTARGS}'"
+		echo "    vmextra: '${XVMEXTRA}'"
+		echo "    vmdisks:" 
+		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
+		echo "    vmifs:" 
+		echo "      -${XVMIF:0:${#XVMIF}-2}"
+		echo "    vmnographic: '${XVMNOGRAPHIC}'"
+	#some specific output for vmostype=pxe like OpenBSD
+	elif [ "${VMOSTYPE[${index}]}" == "pxe" ];then
+		echo "    vmdevice_model: '${XVMDEVICEMODEL}'"
+		echo "    vmkernel: '${XVMKERNEL}'"
+		echo "    vmboot: '${XVMBOOT}'"
+		echo "    vmdisks:" 
+		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
+		echo "    vmifs:" 
+		echo "      -${XVMIF:0:${#XVMIF}-2}"
+		echo "    vmnographic: '${XVMNOGRAPHIC}'"
+		echo "    vmviridian: '${XVMVIRIDIAN}'"
+		echo "    vmapic: '${XVMAPIC}'"
+		echo "    vmacpi: '${XVMACPI}'"
+		echo "    vmpae: '${XVMPAE}'"
+	fi
+
+	echo " "
+	echo "Puppet: prepared yaml to copy/paste to global.eyaml in hieradata"
+	echo "================================================================"
+	echo "node::${XVMNAME}::inet: '${ILOOKUP}'"
+	echo "node::${XVMNAME}::macaddr: '${VMMAC}'"
+	echo "node::${XVMNAME}::name: '`echo ${NAME} | cut -d '.' -f 1`'"
+	echo "node::${XVMNAME}::fqdn: \"%{hiera('node::${XVMNAME}::name')}.%{hiera('network::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`::inet::name')}\""
+	echo " "
+}
+
 verify_dns
 verify_ping
 collect_defaults ${XENVMDIR}/${NAME}
@@ -333,11 +444,5 @@ if [ ${BATCH} == 'false' ];then
 fi
 create_backup
 provision_vm
-
-if [ ${BATCH} == 'true' ];then
-	echo "Your VM is getting installed in the background on node `hostname -f`."
-        echo "It will be available at ${NAME} in a couple of minutes."
-else
-	sleep 5
-	xm console ${NAME}
-fi
+wait_for_install
+generate_yaml
