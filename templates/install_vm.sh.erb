@@ -332,12 +332,13 @@ if [ ${BATCH} == 'true' ];then
 	#implement logic to check if vm-install is still running. For OpenBSD VM which
 	#is fully virtualized vm-install hands over very quickly and only qemu-dm remains
 	VMINSTALL=`ps aux | grep "vm-install.*name ${NAME}" | grep -v grep | wc -l`
-	
+	set +x
 	while [ $VMINSTALL -eq 1 ];do
-        	#echo -n "."
+        	echo -n "."
         	sleep 60
         	VMINSTALL=`ps aux | grep "vm-install.*name ${NAME}" | grep -v grep | wc -l`
 	done
+        set -x
 	
 	#now we can parse and create yaml output from final VM configuration from /etc/xen/vm/fqdn
 	echo "Your ${NAME} installation finished. VM ${NAME} is rebooting [OK]"
@@ -382,13 +383,14 @@ generate_yaml () {
 		XVMSERIAL=`cat ${VMFILE} | grep '^serial=' | tr -d '"' | cut -d '=' -f 2`
 	fi
 
+        set +x
 	#prepare common outputs for all vmostypes
 	echo " "
 	echo "Puppet: prepared yaml to copy/paste to intcluster.yaml in hieradata"
 	echo "==================================================================="
 	echo "  ${XVMNAME}:"
 	echo "    vmname: '${XVMNAME}'"
-	echo "    vmdescription: '${VMDESCRIPTION}'"
+	echo "    vmdescription: '`echo ${VMDESCRIPTION} | tr '_' ' '`'"
 	echo "    vmuuid: '${XVMUUID}'"
 	echo "    vmmemory: '${XVMMEMORY}'"
 	echo "    vmmaxmem: '${XVMMAXMEM}'"
@@ -434,6 +436,8 @@ generate_yaml () {
 	echo "node::${XVMNAME}::name: '`echo ${NAME} | cut -d '.' -f 1`'"
 	echo "node::${XVMNAME}::fqdn: \"%{hiera('node::${XVMNAME}::name')}.%{hiera('network::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`::inet::name')}\""
 	echo " "
+
+        set -x
 }
 
 verify_dns
