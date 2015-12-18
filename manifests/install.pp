@@ -9,6 +9,7 @@ class xen::install (
   $ossettings,
   $vmstoredir,
   $netifmappings,
+  $prohibit_vmcpus,
 ) {
 
   create_resources(package, $packages, $packages_defaults)

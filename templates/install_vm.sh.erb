@@ -16,6 +16,7 @@ VMBRIDGE='AUTO'
 NOW=`date +%Y-%m-%d-%H-%M`
 XENVMDIR="<%= @xenvmdir %>"
 ILOOKUP=''
+PROHIBIT_VMCPUS=<%= @prohibit_vmcpus %>
 
 usage () {
 	echo "  $0"
@@ -395,7 +396,7 @@ generate_yaml () {
 	echo "    vmmemory: '${XVMMEMORY}'"
 	echo "    vmmaxmem: '${XVMMAXMEM}'"
 	echo "    vmvcpus: '${XVMVCPUS}'"
-	echo "    vmcpus: '^0,^1,^2,^3'"
+	echo "    vmcpus: '${PROHIBIT_VMCPUS}'"
 	echo "    vmon_poweroff: '${XVMONPOWEROFF}'"
 	echo "    vmon_reboot: '${XVMONREBOOT}'"
 	echo "    vmon_crash: '${XVMONCRASH}'"

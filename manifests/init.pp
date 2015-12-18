@@ -47,6 +47,7 @@ class xen (
   $ossettings          = undef,
   $vmstoredir          = undef,
   $netifmappings       = undef,
+  $prohibit_vmcpus     = undef,
 ) inherits xen::params {
   $xendconfig = deep_merge($xen::params::xendconfig, $override_xendconfig)
   $packages   = deep_merge($xen::params::packages, $override_packages)
@@ -59,6 +60,7 @@ class xen (
     ossettings               => $ossettings,
     vmstoredir               => $vmstoredir,
     netifmappings            => $netifmappings,
+    prohibit_vmcpus          => $prohibit_vmcpus,
   }
 
   class { 'xen::config':
