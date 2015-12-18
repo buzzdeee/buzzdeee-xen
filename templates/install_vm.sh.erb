@@ -47,6 +47,7 @@ for i in $*; do
     --name ) NAME=`echo ${VALUE} | tr '[:upper:]' '[:lower:]'`;;
     --memory ) VMMEM=${VALUE} ;;
     --description ) VMDESCRIPTION=${VALUE};;
+    --intcluster ) VMINTCLUSTER=${VALUE};;
     --max_memory ) VMMAXMEM=${VALUE};;
     --nr_cpus ) VMCPUS=${VALUE};;
     --disk_size ) VMDISKSIZE=${VALUE};;
@@ -382,6 +383,8 @@ generate_yaml () {
 		XVMACPI=`cat ${VMFILE} | grep '^acpi=' | tr -d '"' | cut -d '=' -f 2`
 		XVMPAE=`cat ${VMFILE} | grep '^pae=' | tr -d '"' | cut -d '=' -f 2`
 		XVMSERIAL=`cat ${VMFILE} | grep '^serial=' | tr -d '"' | cut -d '=' -f 2`
+		#OpenBSD install passes a driver model for NIC which we should pick the whole string model=e1000
+		XVMIF_MODEL_STRING=`echo ${XVMIF} | grep ',model=' | cut -d ',' -f 3 | tr "'" ' ' | tr -d '[[:space:]]'`
 	fi
 
         set +x
@@ -411,7 +414,8 @@ generate_yaml () {
 		echo "    vmdisks:" 
 		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
 		echo "    vmifs:" 
-		echo "      -${XVMIF:0:${#XVMIF}-2}"
+		#echo "      -${XVMIF:0:${#XVMIF}-2}"
+                echo "      - \"mac=%{hiera('node::${XVMNAME}::macaddr')},bridge=%{hiera('role::xenserver::${VMINTCLUSTER}::bridge::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`)}\" "
 		echo "    vmnographic: '${XVMNOGRAPHIC}'"
 	#some specific output for vmostype=pxe like OpenBSD
 	elif [ "${VMOSTYPE[${index}]}" == "pxe" ];then
@@ -421,7 +425,8 @@ generate_yaml () {
 		echo "    vmdisks:" 
 		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
 		echo "    vmifs:" 
-		echo "      -${XVMIF:0:${#XVMIF}-2}"
+		#echo "      -${XVMIF:0:${#XVMIF}-2}"
+		echo "      - \"mac=%{hiera('node::${XVMNAME}::macaddr')},bridge=%{hiera('role::xenserver::${VMINTCLUSTER}::bridge::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`)},${XVMIF_MODEL_STRING}\" "
 		echo "    vmnographic: '${XVMNOGRAPHIC}'"
 		echo "    vmviridian: '${XVMVIRIDIAN}'"
 		echo "    vmapic: '${XVMAPIC}'"
