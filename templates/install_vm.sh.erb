@@ -426,8 +426,8 @@ generate_yaml () {
 	fi
 
 	echo " "
-	echo "Puppet: prepared yaml to copy/paste to global.eyaml in hieradata"
-	echo "================================================================"
+	echo "Puppet: prepared yaml to copy/paste to default.eyaml in hieradata"
+	echo "================================================================="
 	echo "node::${XVMNAME}::inet: '${ILOOKUP}'"
 	echo "node::${XVMNAME}::macaddr: '${VMMAC}'"
 	echo "node::${XVMNAME}::name: '`echo ${NAME} | cut -d '.' -f 1`'"
