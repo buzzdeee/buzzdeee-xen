@@ -137,7 +137,7 @@ fi
 verify_dns () {
 	NLOOKUP=`nslookup ${NAME} | grep 'Name:' | cut -d ':' -f 2 | tr -d '\t'`
 
-	if [ ${NAME} == ${NLOOKUP} ];then
+	if [ "X${NAME}" == "X${NLOOKUP}" ];then
         	echo "${NAME} exists in DNS [OK]"
         	#find the IP address
         	ILOOKUP=`nslookup ${NAME} | tail -n2 | grep 'Address:' | cut -d ':' -f 2 | tr -d '\t '`
