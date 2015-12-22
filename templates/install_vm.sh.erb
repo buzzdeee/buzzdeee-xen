@@ -419,7 +419,7 @@ generate_yaml () {
 		echo "    vmnographic: '${XVMNOGRAPHIC}'"
 	#some specific output for vmostype=pxe like OpenBSD
 	elif [ "${VMOSTYPE[${index}]}" == "pxe" ];then
-		echo "    vmdevice_model: '${XVMDEVICEMODEL}'"
+		echo "    vmdevicemodel: '${XVMDEVICEMODEL}'"
 		echo "    vmkernel: '${XVMKERNEL}'"
 		echo "    vmboot: '${XVMBOOT}'"
 		echo "    vmdisks:" 
