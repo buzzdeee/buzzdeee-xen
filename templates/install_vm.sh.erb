@@ -421,7 +421,7 @@ generate_yaml () {
 	elif [ "${VMOSTYPE[${index}]}" == "pxe" ];then
 		echo "    vmdevicemodel: '${XVMDEVICEMODEL}'"
 		echo "    vmkernel: '${XVMKERNEL}'"
-		echo "    vmboot: '${XVMBOOT}'"
+		echo "    vmbootorder: '${XVMBOOT}'"
 		echo "    vmdisks:" 
 		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
 		echo "    vmifs:" 
