@@ -23,6 +23,7 @@ define xen::vmconfig (
   $vmacpi = undef,
   $vmbootorder = undef,
   $vmbootloader = undef,
+  $vmkernel = undef,
   $vmbootargs = undef,
   $vmextra = undef,
   $vmnographic = undef,

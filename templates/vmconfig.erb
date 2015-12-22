@@ -37,7 +37,11 @@ builder="hvm"
   <%- if @vmdevicemodel -%>
 device_model="<%= @vmdevicemodel %>"
   <%- end -%>
+<% if @vmkernel -%>
+kernel="<%= @vmkernel %>"
+<% else -%>
 kernel="/usr/lib/xen/boot/hvmloader"
+<% end -%>
 boot="<%= @vmbootorder %>"
   <%- if @vmstdvga -%>
 stdvga=<%= @vmstdvga %>
