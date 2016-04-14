@@ -416,7 +416,7 @@ generate_yaml () {
 		echo "    vmdisks:"
 		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
 		echo "    vmvifs:"
-                echo "      - \"mac=%{hiera('node::${XVMNAME}::macaddr')},bridge=%{hiera('role::xenserver::${VMINTCLUSTER}::bridge::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`)}\" "
+                echo "      - \"mac=%{hiera('node::${XVMNAME}::macaddr')},bridge=%{hiera('role::xenserver::${VMINTCLUSTER}::bridge::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`')}\" "
 		echo "    vmnographic: '${XVMNOGRAPHIC}'"
 	#some specific output for vmostype=pxe like OpenBSD
 	elif [ "${VMOSTYPE[${index}]}" == "pxe" ];then
@@ -426,7 +426,7 @@ generate_yaml () {
 		echo "    vmdisks:"
 		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
 		echo "    vmvifs:"
-		echo "      - \"mac=%{hiera('node::${XVMNAME}::macaddr')},bridge=%{hiera('role::xenserver::${VMINTCLUSTER}::bridge::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`)},${XVMIF_MODEL_STRING}\" "
+		echo "      - \"mac=%{hiera('node::${XVMNAME}::macaddr')},bridge=%{hiera('role::xenserver::${VMINTCLUSTER}::bridge::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`')},${XVMIF_MODEL_STRING}\" "
 		echo "    vmnographic: '${XVMNOGRAPHIC}'"
 		echo "    vmviridian: '${XVMVIRIDIAN}'"
 		echo "    vmapic: '${XVMAPIC}'"
