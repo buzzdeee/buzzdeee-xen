@@ -79,6 +79,9 @@ usbdevice='<%= @vmusbdevice %>'
 <% end -%>
 <% if @builder == 'linux' -%>
 builder="linux"
+<% if @vmkernel -%>
+kernel="<%= @vmkernel %>"
+<% end -%>
   <%- if @vmbootloader -%>
 bootloader="<%= @vmbootloader %>"
   <%- end -%>
