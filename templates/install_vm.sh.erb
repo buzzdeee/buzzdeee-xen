@@ -295,6 +295,16 @@ provision_vm() {
                         --keymap=de --para-virt \
             --extra-args "ks=http://oit.dmz5.intern/ks-ubuntu-14.04.4-autoinstall.cfg console=hvc0 xencons=tty" \
                         --graphics cirrus --background
+        #added for UBUNTU1604
+        elif [ "${VMOSTYPE[${index}]}" == "ubuntu" ] &&  [ "${OSRELEASE[${index}]}" == "UBUNTU1604" ];then
+                cd ${XENVMDIR} && vm-install --os-type ${VMOSTYPE[${index}]} --name ${NAME} --vcpus ${VMCPUS} \
+                        --memory ${VMMEM} --max-mem ${VMMAXMEM} \
+                        --disk "file:/vms/iso/ubuntu-16.04-server-amd64-autoinstall.iso,1,cdrom" \
+                        --disk "file:${VMDISK},xvda,w,${VMDISKSIZE},sparse=1" \
+                        --nic "bridge=${VMBRIDGE},mac=${VMMAC}" \
+                        --keymap=de --para-virt \
+            --extra-args "ks=http://oit.dmz5.intern/ks-ubuntu-16.04-autoinstall.cfg console=hvc0 xencons=tty" \
+                        --graphics cirrus --background
         else
 		cd ${XENVMDIR} && vm-install --graphics none --vcpus ${VMCPUS} --memory ${VMMEM} \
 			--max-mem ${VMMAXMEM}  --disk "file:${VMDISK},xvda,w,${VMDISKSIZE}" \
