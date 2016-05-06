@@ -428,8 +428,8 @@ generate_yaml () {
 	echo "    vmlocaltime: '${XVMLOCALTIME}'"
 	echo "    vmkeymap: '${XVMKEYMAP}'"
 	echo "    builder: '${XVMBUILDER}'"
-	#prepare different outputs depending on the vmostype (linux sless != pxe)
-	if [ "${VMOSTYPE[${index}]}" != "pxe" ];then
+	#prepare different outputs depending on the vmostype (sles11 or sles12, pxe, ubuntu)
+	if [ "${VMOSTYPE[${index}]}" == "sles11" ] || [ "${VMOSTYPE[${index}]}" == "sles12" ] ;then
 		echo "    vmbootloader: '${XVMBOOTLOADER}'"
 		echo "    vmbootargs: '${XVMBOOTARGS}'"
 		echo "    vmextra: '${XVMEXTRA}'"
@@ -440,6 +440,20 @@ generate_yaml () {
 		echo "    vmnographic: '${XVMNOGRAPHIC}'"
 	#some specific output for vmostype=pxe like OpenBSD
 	elif [ "${VMOSTYPE[${index}]}" == "pxe" ];then
+		echo "    vmdevicemodel: '${XVMDEVICEMODEL}'"
+		echo "    vmkernel: '${XVMKERNEL}'"
+		echo "    vmbootorder: '${XVMBOOT}'"
+		echo "    vmdisks:"
+		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
+		echo "    vmvifs:"
+		echo "      - \"mac=%{hiera('node::${XVMNAME}::macaddr')},bridge=%{hiera('role::xenserver::${VMINTCLUSTER}::bridge::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`')},${XVMIF_MODEL_STRING}\" "
+		echo "    vmnographic: '${XVMNOGRAPHIC}'"
+		echo "    vmviridian: '${XVMVIRIDIAN}'"
+		echo "    vmapic: '${XVMAPIC}'"
+		echo "    vmacpi: '${XVMACPI}'"
+		echo "    vmpae: '${XVMPAE}'"
+	#some specific output for vmostype=ubuntu like UBUNTU14044 and UBUNTU1604
+	elif [ "${VMOSTYPE[${index}]}" == "ubuntu" ];then
 		echo "    vmdevicemodel: '${XVMDEVICEMODEL}'"
 		echo "    vmkernel: '${XVMKERNEL}'"
 		echo "    vmbootorder: '${XVMBOOT}'"
