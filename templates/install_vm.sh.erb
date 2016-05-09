@@ -411,6 +411,9 @@ generate_yaml () {
 		XVMDEVICEMODEL=`cat ${VMFILE} | grep '^device_model=' | tr -d '"' | cut -d '=' -f 2`
 		XVMKERNEL=`cat ${VMFILE} | grep '^kernel=' | tr -d '"' | cut -d '=' -f 2`
 		XVMBOOT=`cat ${VMFILE} | grep '^boot=' | tr -d '"' | cut -d '=' -f 2`
+		XVMSTDVGA=`cat ${VMFILE} | grep '^stdvga=' | tr -d '"' | cut -d '=' -f 2`
+		XVMVNC=`cat ${VMFILE} | grep '^vnc=' | tr -d '"' | cut -d '=' -f 2`
+		XVMVNCUNUSED=`cat ${VMFILE} | grep '^vncunused=' | tr -d '"' | cut -d '=' -f 2`
 		XVMVIRIDIAN=`cat ${VMFILE} | grep '^viridian=' | tr -d '"' | cut -d '=' -f 2`
 		XVMACPI=`cat ${VMFILE} | grep '^acpi=' | tr -d '"' | cut -d '=' -f 2`
 		XVMPAE=`cat ${VMFILE} | grep '^pae=' | tr -d '"' | cut -d '=' -f 2`
@@ -474,6 +477,9 @@ generate_yaml () {
 		echo "      -${XVMDISK:0:${#XVMDISK}-2}"
 		echo "    vmvifs:"
 		echo "      - \"mac=%{hiera('node::${XVMNAME}::macaddr')},bridge=%{hiera('role::xenserver::${VMINTCLUSTER}::bridge::`echo ${VMNETWORK} | tr [:upper:] [:lower:]`')},${XVMIF_MODEL_STRING}\" "
+                echo "    vmstdvga: '${XVMSTDVGA}'"
+                echo "    vmvnc: '${XVMVNC}'"
+                echo "    vmvncunused: '${XVMVNCUNUSED}'"
 		echo "    vmviridian: '${XVMVIRIDIAN}'"
 		echo "    vmacpi: '${XVMACPI}'"
 		echo "    vmpae: '${XVMPAE}'"
