@@ -402,7 +402,8 @@ generate_yaml () {
 		XVMAPIC=`cat ${VMFILE} | grep '^apic=' | tr -d '"' | cut -d '=' -f 2`
 		XVMACPI=`cat ${VMFILE} | grep '^acpi=' | tr -d '"' | cut -d '=' -f 2`
 		XVMPAE=`cat ${VMFILE} | grep '^pae=' | tr -d '"' | cut -d '=' -f 2`
-		XVMSERIAL=`cat ${VMFILE} | grep '^serial=' | tr -d '"' | cut -d '=' -f 2`
+		# Hardcode here, since the PXE installer doesn't set it, so we cannot grep it
+		XVMSERIAL=pty
 		#OpenBSD install passes a driver model for NIC which we should pick the whole string model=e1000
 		XVMIF_MODEL_STRING=`echo ${XVMIF} | grep ',model=' | cut -d ',' -f 3 | tr "'" ' ' | tr -d '[[:space:]]'`
 	fi
