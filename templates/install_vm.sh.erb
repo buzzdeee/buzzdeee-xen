@@ -144,7 +144,7 @@ verify_dns () {
         	echo "The IP for ${NAME} is: ${ILOOKUP} [OK]"
 
         	#do a reverse name lookup
-        	RLOOKUP=`nslookup ${ILOOKUP} | tail -n6 | grep -w 'name' | wc -l`
+        	RLOOKUP=`nslookup ${ILOOKUP} | grep -w 'name = ${NAME}.' | wc -l`
         	if [ $RLOOKUP -eq 1 ];then
                 	echo "${ILOOKUP} exists in reverse DNS [OK]"
         	else
