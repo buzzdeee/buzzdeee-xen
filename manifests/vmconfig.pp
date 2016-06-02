@@ -35,7 +35,6 @@ define xen::vmconfig (
   $vmviridian = undef,
   $vmvncunused = undef,
   $vmvnc = undef,
-  $vmviridian = undef,
   $vmstdvga = undef,
   $vmhpet = undef,
   $vmusb = undef,

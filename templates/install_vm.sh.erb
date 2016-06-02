@@ -399,7 +399,7 @@ generate_yaml () {
 		XVMKERNEL=`cat ${VMFILE} | grep '^kernel=' | tr -d '"' | cut -d '=' -f 2`
 		XVMBOOT=`cat ${VMFILE} | grep '^boot=' | tr -d '"' | cut -d '=' -f 2`
 		XVMVIRIDIAN=`cat ${VMFILE} | grep '^viridian=' | tr -d '"' | cut -d '=' -f 2`
-		XVMAPIC=`cat ${VMFILE} | grep '^apic=' | tr -d '"' | cut -d '=' -f 2`
+		XVMAPIC=1
 		XVMACPI=`cat ${VMFILE} | grep '^acpi=' | tr -d '"' | cut -d '=' -f 2`
 		XVMPAE=`cat ${VMFILE} | grep '^pae=' | tr -d '"' | cut -d '=' -f 2`
 		# Hardcode here, since the PXE installer doesn't set it, so we cannot grep it
@@ -469,6 +469,7 @@ generate_yaml () {
 		echo "    vmapic: '${XVMAPIC}'"
 		echo "    vmacpi: '${XVMACPI}'"
 		echo "    vmpae: '${XVMPAE}'"
+		echo "    vmserial: '${XVMSERIAL}'"
 	#some specific output for vmostype=ubuntu like UBUNTU14044 and UBUNTU1604
 	elif [ "${VMOSTYPE[${index}]}" == "ubuntu" ];then
 		echo "    vmdevicemodel: '${XVMDEVICEMODEL}'"
