@@ -289,7 +289,7 @@ provision_vm() {
         elif [ "${VMOSTYPE[${index}]}" == "ubuntu" ] &&  [ "${OSRELEASE[${index}]}" == "UBUNTU14044" ];then
                 cd ${XENVMDIR} && vm-install --os-type ${VMOSTYPE[${index}]} --name ${NAME} --vcpus ${VMCPUS} \
                         --memory ${VMMEM} --max-mem ${VMMAXMEM} \
-                        --disk "file:${VMSTOREDIR}/ISO/ubuntu-14.04.4-server-amd64-autoinstall.iso,1,cdrom" \
+                        --disk "file:${VMSTOREDIR}/ISO/ubuntu/ubuntu-14.04.4-server-amd64-autoinstall.iso,1,cdrom" \
                         --disk "file:${VMDISK},xvda,w,${VMDISKSIZE},sparse=1" \
                         --nic "bridge=${VMBRIDGE},mac=${VMMAC}" \
                         --keymap=de --para-virt \
@@ -299,7 +299,7 @@ provision_vm() {
         elif [ "${VMOSTYPE[${index}]}" == "ubuntu" ] &&  [ "${OSRELEASE[${index}]}" == "UBUNTU1604" ];then
                 cd ${XENVMDIR} && vm-install --os-type ${VMOSTYPE[${index}]} --name ${NAME} --vcpus ${VMCPUS} \
                         --memory ${VMMEM} --max-mem ${VMMAXMEM} \
-                        --disk "file:${VMSTOREDIR}/ISO/ubuntu-16.04-server-amd64-autoinstall.iso,1,cdrom" \
+                        --disk "file:${VMSTOREDIR}/ISO/ubuntu/ubuntu-16.04-server-amd64-autoinstall.iso,1,cdrom" \
                         --disk "file:${VMDISK},xvda,w,${VMDISKSIZE}" \
                         --nic "bridge=${VMBRIDGE},mac=${VMMAC}" \
                         --keymap=de --full-virt \
